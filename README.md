@@ -30,9 +30,9 @@ A repo for learning SDL 2.0 in C
 * Foreground/Background Rendering
 
 ## Resources
-https://libsdl.org/download-2.0.php
-https://wiki.libsdl.org/
-https://wiki.libsdl.org/Installation
-https://wiki.libsdl.org/Introduction
-https://github.com/libsdl-org/SDL/blob/main/docs/README-linux.md
-https://stackoverflow.com/questions/64396979/how-do-i-use-sdl2-in-my-programs-correctly
+* https://libsdl.org/download-2.0.php
+* https://wiki.libsdl.org/
+* https://wiki.libsdl.org/Installation
+* https://wiki.libsdl.org/Introduction
+* https://github.com/libsdl-org/SDL/blob/main/docs/README-linux.md
+* https://stackoverflow.com/questions/64396979/how-do-i-use-sdl2-in-my-programs-correctly
