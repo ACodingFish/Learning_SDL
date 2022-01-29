@@ -11,6 +11,7 @@
 
 
 bool SDLMgr_InitComponent(SDL_Component_t sdl_component);
+void SDLMgr_CloseComponent(SDL_Component_t sdl_component);
 
 static uint32_t sdl_init_mask = 0x0; // Component Mask
 
@@ -39,7 +40,7 @@ bool SDLMgr_InitComponent(SDL_Component_t sdl_component)
     switch (sdl_component)
     {
         case SDLC_VIDEO:
-            ret = (SDL_Init( SDL_INIT_VIDEO ) == 0);
+            ret = (SDL_InitSubSystem( SDL_INIT_VIDEO ) == 0);
             break;
         default:
             break;
@@ -55,10 +56,41 @@ bool SDLMgr_InitComponent(SDL_Component_t sdl_component)
 
 bool SDLMgr_IsComponentInitialized(SDL_Component_t sdl_component)
 {
-    return MASK_BIT_CHK(sdl_init_mask, (uint8_t)sdl_component);
+    bool ret = false;
+    if (sdl_component < SDLC_COUNT)
+    {
+        ret = MASK_BIT_CHK(sdl_init_mask, (uint8_t)sdl_component);
+    }
+    return ret;
+}
+void SDLMgr_CloseComponent(SDL_Component_t sdl_component)
+{ 
+    bool is_initialized = SDLMgr_IsComponentInitialized(sdl_component);
+    if (is_initialized != false)
+    {
+        switch (sdl_component)
+        {
+            case SDLC_VIDEO:
+                SDL_QuitSubSystem( SDL_INIT_VIDEO );
+                break;
+            default:
+                break;
+        }
+
+        MASK_BIT_CLR(sdl_init_mask, (uint8_t)sdl_component);
+        DBG_LOG("SDL Component: %d shutdown\n", (uint8_t)sdl_component);
+    } else
+    {
+        DBG_ERR("Component %d is not initialized.\n", (uint8_t)sdl_component);
+    }
 }
 
 void SDLMGR_Close(void)
 {
+    for (uint8_t i = 0; i < (uint8_t)SDLC_COUNT; i++)
+    {
+        SDLMgr_CloseComponent((SDL_Component_t)i);
+    }
+
     SDL_Quit();
 }

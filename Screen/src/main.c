@@ -5,6 +5,7 @@
 #include "SDL_Manager.h"
 #include "Screen.h"
 #include "Screen_Draw.h"
+#include "GFX_Manager.h"
 
 #include "global_def_macros.h"
 //#include <stdio.h> // for printf
@@ -18,7 +19,7 @@
 
 int main(int argc, char* args[])
 {
-    if (SDLMgr_InitAll() != false)
+    if ((SDLMgr_InitAll() != false) && (GFX_Mgr_Init() != false))
     {
         Screen_t screen;
         if (Screen_InitWindow(&screen, SCREEN_WIDTH, SCREEN_HEIGHT, WINDOW_TITLE))
@@ -80,6 +81,7 @@ int main(int argc, char* args[])
                 if(SDL_PollEvent(&event) && (event.type == SDL_QUIT)) // Turn into SDL Event Manager Thread
                 {
                     Screen_DestroyWindow(&screen);
+                    GFX_Mgr_Shutdown();
                     break;
                 }
             }

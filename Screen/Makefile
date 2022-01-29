@@ -12,6 +12,7 @@ SRC=$(SRC_DIR)/main.c \
 	$(SDL_LIB)/SDL_Manager.c \
 	$(SDL_LIB)/Screen.c \
 	$(SDL_LIB)/Screen_Draw.c \
+	$(SDL_LIB)/GFX_Manager.c \
 
 # Include Files (Dependencies)
 DEPS=$(INC_DIR)/*.h
