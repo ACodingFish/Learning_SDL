@@ -3,13 +3,13 @@
 #include <SDL.h>
 
 #include "global_def_macros.h"
+#include "GFX_Manager.h"
 
 #include "SDL_Manager.h"
-
-#include <stdio.h>
-
+//#include <stdio.h>
 
 
+bool SDLMgr_InitComponents(void);
 bool SDLMgr_InitComponent(SDL_Component_t sdl_component);
 void SDLMgr_CloseComponent(SDL_Component_t sdl_component);
 
@@ -17,6 +17,16 @@ static uint32_t sdl_init_mask = 0x0; // Component Mask
 
 // Initialize All Components
 bool SDLMgr_InitAll(void)
+{
+    bool ret = false;
+    if ((SDLMgr_InitComponents() != false) && (GFX_Mgr_Init() != false))
+    {
+        ret = true;
+    }
+    return ret;
+}
+
+bool SDLMgr_InitComponents(void)
 {
     bool ret = true;
     sdl_init_mask = 0x0;
@@ -63,6 +73,7 @@ bool SDLMgr_IsComponentInitialized(SDL_Component_t sdl_component)
     }
     return ret;
 }
+
 void SDLMgr_CloseComponent(SDL_Component_t sdl_component)
 { 
     bool is_initialized = SDLMgr_IsComponentInitialized(sdl_component);
@@ -87,6 +98,8 @@ void SDLMgr_CloseComponent(SDL_Component_t sdl_component)
 
 void SDLMGR_Close(void)
 {
+    GFX_Mgr_Shutdown();
+
     for (uint8_t i = 0; i < (uint8_t)SDLC_COUNT; i++)
     {
         SDLMgr_CloseComponent((SDL_Component_t)i);

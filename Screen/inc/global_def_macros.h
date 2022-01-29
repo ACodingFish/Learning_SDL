@@ -7,8 +7,8 @@
 
 #define MASK_BIT_CHK(m, b) ((m & (1<<(b))) > 0)
 
-
 #define ENABLE_DEBUG_MODE
+
 #ifdef ENABLE_DEBUG_MODE
 #   define DBG_LOG(...)     do { \
         printf("[DBG] %s, function %s: ", __FILE__, __FUNCTION__); \
