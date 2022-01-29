@@ -14,6 +14,7 @@ A repo for learning SDL 2.0 in C
 * Basic Drawing (Pixels, Rectangles, Lines)
 
 ## Desired Features (Short Term)
+* Migrate to OpenGL
 * Threading (SDL Library)
 * Graphics Update Thread (periodic refresh)
 * Event thread/event queue (SDL Library)
