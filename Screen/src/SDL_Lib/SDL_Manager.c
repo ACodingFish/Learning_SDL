@@ -2,7 +2,7 @@
 #include <stdbool.h>
 #include <SDL.h>
 
-#include "bit_macros.h"
+#include "global_def_macros.h"
 
 #include "SDL_Manager.h"
 
@@ -13,11 +13,6 @@
 bool SDLMgr_InitComponent(SDL_Component_t sdl_component);
 
 static uint32_t sdl_init_mask = 0x0; // Component Mask
-
-void SDLMgr_WaitMS(uint32_t time_ms)
-{
-    SDL_Delay(time_ms);
-}
 
 // Initialize All Components
 bool SDLMgr_InitAll(void)

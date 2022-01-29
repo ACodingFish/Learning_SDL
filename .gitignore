@@ -53,3 +53,4 @@ dkms.conf
 Screen/.vscode/*
 Screen/Screen
 .vscode/c_cpp_properties.json
+.vscode/settings.json

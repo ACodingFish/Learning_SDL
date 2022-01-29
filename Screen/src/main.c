@@ -6,11 +6,14 @@
 #include "Screen.h"
 #include "Screen_Draw.h"
 
-#include <stdio.h> // for printf
+#include "global_def_macros.h"
+//#include <stdio.h> // for printf
 
 //Screen dimension constants
-#define SCREEN_WIDTH 640u // need to make this default and read in from a conf file
-#define SCREEN_HEIGHT 480u
+#define SCREEN_WIDTH 800u // need to make this default and read in from a conf file
+#define SCREEN_HEIGHT 600u
+#define CANVAS_WIDTH 640u
+#define CANVAS_HEIGHT 480u
 #define WINDOW_TITLE "HELLO NURSE\0"
 
 int main(int argc, char* args[])
@@ -21,6 +24,7 @@ int main(int argc, char* args[])
         if (Screen_InitWindow(&screen, SCREEN_WIDTH, SCREEN_HEIGHT, WINDOW_TITLE))
         {
             ScreenPixelColor_t pix_color = {10, 200, 255, 255};
+            ScreenPixelColor_t bg_color = {200, 200, 200, 255};
             //SDL_Point points[SCREEN_WIDTH];
             //for (int i = 0; i < SCREEN_WIDTH; i++)
             //{
@@ -36,13 +40,21 @@ int main(int argc, char* args[])
             //     {SCREEN_WIDTH/4, SCREEN_HEIGHT*3/4},
             // };
             // Screen_DrawLines(&screen, pix_color, points, 4);
+            Screen_SetRendererColor(&screen, 0, 0, 0, 255);
+            SDL_RenderClear(screen.renderer);
+
+
 
             int pixel_sz = 40;
-            int offset_x = pixel_sz/2;
-            int offset_y = pixel_sz/2;
-            int horiz_pixels = SCREEN_WIDTH/2/pixel_sz;
-            int vert_pixels = SCREEN_HEIGHT/2/pixel_sz;
+            int offset_x = (SCREEN_WIDTH - CANVAS_WIDTH)/2;
+            int offset_y = (SCREEN_HEIGHT - CANVAS_HEIGHT)/2;
+            int horiz_pixels = CANVAS_WIDTH/2/pixel_sz;
+            int vert_pixels = CANVAS_HEIGHT/2/pixel_sz;
             int num_rects = horiz_pixels*vert_pixels;
+
+            SDL_Rect bg_rect = {offset_x,offset_y, CANVAS_WIDTH, CANVAS_HEIGHT};
+            Screen_DrawRect(&screen, bg_color, &bg_rect, 1, true);
+
             SDL_Rect rects[num_rects];
 
             for (int i = 0; i < horiz_pixels; i++) // convert this to filling from a file/buffer
@@ -73,11 +85,11 @@ int main(int argc, char* args[])
             }
         } else
         {
-            printf("Failed to create screen/window\n");
+            DBG_LOG("Failed to create screen/window\n");
         }
     } else
     {
-        printf("Failed to initialize SDL Components\n");
+        DBG_LOG("Failed to initialize SDL Components\n");
     }
 
     SDLMGR_Close();
