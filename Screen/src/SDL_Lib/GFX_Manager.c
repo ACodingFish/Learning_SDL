@@ -14,6 +14,9 @@
 #define CANVAS_HEIGHT 480u
 #define WINDOW_TITLE "HELLO NURSE\0"
 
+/* TEMP  - Graphics procesing Ops */
+void CreateGraphic(void);
+/* TEMP END */
 
 static int gfx_mgr_thread(void * ptr);
 static SDL_Thread * gfx_thread = NULL;
@@ -21,60 +24,43 @@ static bool gfx_initialized = false;
 static Screen_t screen;
 
 
-static int gfx_mgr_thread(void * ptr)
+void CreateGraphic(void)
 {
-    int ret = 0;
-    gfx_initialized = true;
-    while (gfx_initialized != false)
+    static bool is_bg = true;
+    ScreenPixelColor_t pix_color = {10, 200, 255, 255};
+    ScreenPixelColor_t bg_color = {200, 200, 200, 255};
+    //SDL_Point points[SCREEN_WIDTH];
+    //for (int i = 0; i < SCREEN_WIDTH; i++)
+    //{
+    //    points[i].x = i;
+    //    points[i].y = (SCREEN_HEIGHT/2);
+    //}
+    //Screen_DrawPixels(&screen, pix_color, points, SCREEN_WIDTH);
+    
+    // SDL_Point points[] = {
+    //     {SCREEN_WIDTH/4, SCREEN_HEIGHT/4},
+    //     {SCREEN_WIDTH*3/4, SCREEN_HEIGHT/4},
+    //     {SCREEN_WIDTH*3/4, SCREEN_HEIGHT*3/4},
+    //     {SCREEN_WIDTH/4, SCREEN_HEIGHT*3/4},
+    // };
+    // Screen_DrawLines(&screen, pix_color, points, 4);
+
+
+
+
+    int pixel_sz = 40;
+    int offset_x = (SCREEN_WIDTH - CANVAS_WIDTH)/2;
+    int offset_y = (SCREEN_HEIGHT - CANVAS_HEIGHT)/2;
+    int horiz_pixels = CANVAS_WIDTH/2/pixel_sz;
+    int vert_pixels = CANVAS_HEIGHT/2/pixel_sz;
+    int num_rects = horiz_pixels*vert_pixels;
+
+    if (is_bg != false)
     {
-        DBG_LOG("Screen Update\n");
-        SDLMgr_WaitMS(2000);
-    }
-    // Cleanup here
-    if (ret != 0)
-    {
-        DBG_ERR("GFX failed with error: %d\n", ret);
-    }
-    return ret;
-}
-
-bool GFX_Mgr_Init(void)
-{
-    bool ret = false;
-    if (Screen_InitWindow(&screen, SCREEN_WIDTH, SCREEN_HEIGHT, WINDOW_TITLE))
-    {
-        ScreenPixelColor_t pix_color = {10, 200, 255, 255};
-        ScreenPixelColor_t bg_color = {200, 200, 200, 255};
-        //SDL_Point points[SCREEN_WIDTH];
-        //for (int i = 0; i < SCREEN_WIDTH; i++)
-        //{
-        //    points[i].x = i;
-        //    points[i].y = (SCREEN_HEIGHT/2);
-        //}
-        //Screen_DrawPixels(&screen, pix_color, points, SCREEN_WIDTH);
-        
-        // SDL_Point points[] = {
-        //     {SCREEN_WIDTH/4, SCREEN_HEIGHT/4},
-        //     {SCREEN_WIDTH*3/4, SCREEN_HEIGHT/4},
-        //     {SCREEN_WIDTH*3/4, SCREEN_HEIGHT*3/4},
-        //     {SCREEN_WIDTH/4, SCREEN_HEIGHT*3/4},
-        // };
-        // Screen_DrawLines(&screen, pix_color, points, 4);
-        Screen_SetRendererColor(&screen, 0, 0, 0, 255);
-        SDL_RenderClear(screen.renderer);
-
-
-
-        int pixel_sz = 40;
-        int offset_x = (SCREEN_WIDTH - CANVAS_WIDTH)/2;
-        int offset_y = (SCREEN_HEIGHT - CANVAS_HEIGHT)/2;
-        int horiz_pixels = CANVAS_WIDTH/2/pixel_sz;
-        int vert_pixels = CANVAS_HEIGHT/2/pixel_sz;
-        int num_rects = horiz_pixels*vert_pixels;
-
         SDL_Rect bg_rect = {offset_x,offset_y, CANVAS_WIDTH, CANVAS_HEIGHT};
         Screen_DrawRect(&screen, bg_color, &bg_rect, 1, true);
-
+    } else
+    {
         SDL_Rect rects[num_rects];
 
         for (int i = 0; i < horiz_pixels; i++) // convert this to filling from a file/buffer
@@ -89,8 +75,41 @@ bool GFX_Mgr_Init(void)
             }
         }
         Screen_DrawRect(&screen, pix_color, rects, num_rects, true);
-        
-        SDL_RenderPresent(screen.renderer);
+    }
+
+
+
+    is_bg = !is_bg;    
+    SDL_RenderPresent(screen.renderer);
+}
+
+static int gfx_mgr_thread(void * ptr)
+{
+    int ret = 0;
+
+    Screen_SetRendererColor(&screen, 0, 0, 0, 255);
+    SDL_RenderClear(screen.renderer);
+    
+    gfx_initialized = true;
+    while (gfx_initialized != false)
+    {
+        DBG_LOG("Screen Update\n");
+        CreateGraphic(); // Temp for testing
+        SDLMgr_WaitMS(2000);
+    }
+
+    if (ret != 0)
+    {
+        DBG_ERR("GFX failed with error: %d\n", ret);
+    }
+    return ret;
+}
+
+bool GFX_Mgr_Init(void)
+{
+    bool ret = false;
+    if (Screen_InitWindow(&screen, SCREEN_WIDTH, SCREEN_HEIGHT, WINDOW_TITLE))
+    {
         gfx_thread = SDL_CreateThread(gfx_mgr_thread, "gfx_mgr_thread", (void *)NULL);
         if (gfx_thread != NULL)
         {
