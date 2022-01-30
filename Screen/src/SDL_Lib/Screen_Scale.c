@@ -1,4 +1,5 @@
 #include <SDL.h>
+#include <stdbool.h>
 #include "Screen_Scale.h"
 
 typedef struct ScreenScaleDimension_t_def
@@ -13,30 +14,22 @@ typedef struct ScreenScaleDimension_t_def
     int offset_y;   //canvas Y offset from top
     float new_ar; // screen aspect ratio
     float orig_ar; // non-scaled aspect ratio
+    ScreenScaleMode_t scale_mode;
 
 } ScreenScaleDimension_t;
 
 void Screen_ScaleGetCanvasDims(void);
 int Sreen_ScaleLinearTransformation(int val, int old_min, int old_max, int new_min, int new_max);
 
-static ScreenScaleMode_t scale_mode = SSM_CENTER;
-static ScreenScaleDimension_t sdim = {600, 480, 600, 480, 600, 480, 0, 0, 0.0, 0.0};
+static ScreenScaleDimension_t sdim = {600, 480, 600, 480, 600, 480, 0, 0, 0.0, 0.0, SSM_CENTER};
 
 void Screen_ScaleInit(ScreenScaleMode_t mode, int scr_w, int scr_h, int orig_w, int orig_h)
 {
-    scale_mode = mode;
-    sdim.scr_w = scr_w;
-    sdim.scr_h = scr_h;
-    sdim.orig_w = orig_w;
-    sdim.orig_h = orig_h;
 
-    sdim.new_ar = (float)sdim.scr_w/(float)sdim.scr_h;
-    sdim.orig_ar = (float)sdim.orig_w/(float)sdim.orig_h;
 
-    Screen_ScaleGetCanvasDims();
-
-    sdim.offset_x = (sdim.scr_w - sdim.cvs_w)/2;
-    sdim.offset_y = (sdim.scr_h - sdim.cvs_h)/2;
+    Screen_ScaleSwitchScreenResolution(scr_w, scr_h, false);
+    Screen_ScaleSwitchOrigResolution(orig_w, orig_h, false);
+    Screen_ScaleSwitchMode(mode);
 
     // int pixel_sz = 40;
     // int horiz_pixels = sdim.cvs_w/2/pixel_sz;
@@ -44,10 +37,40 @@ void Screen_ScaleInit(ScreenScaleMode_t mode, int scr_w, int scr_h, int orig_w, 
     // int num_rects = horiz_pixels*vert_pixels;
 }
 
+void Screen_ScaleSwitchScreenResolution(int scr_w, int scr_h, bool refresh_mode) // refresh mode unless initializing
+{
+    sdim.scr_w = scr_w;
+    sdim.scr_h = scr_h;
+    sdim.new_ar = (float)sdim.scr_w/(float)sdim.scr_h;
+    if (refresh_mode != false)
+    {
+        Screen_ScaleSwitchMode(sdim.scale_mode); //Refresh mode parameters
+    }
+}
+
+void Screen_ScaleSwitchOrigResolution(int orig_w, int orig_h, bool refresh_mode) // refresh mode unless initializing
+{
+    sdim.orig_w = orig_w;
+    sdim.orig_h = orig_h;
+    sdim.orig_ar = (float)sdim.orig_w/(float)sdim.orig_h;
+    if (refresh_mode != false)
+    {
+        Screen_ScaleSwitchMode(sdim.scale_mode); //Refresh mode parameters
+    }
+}
+
+void Screen_ScaleSwitchMode(ScreenScaleMode_t mode)
+{
+    sdim.scale_mode = mode;
+    Screen_ScaleGetCanvasDims();
+    sdim.offset_x = (sdim.scr_w - sdim.cvs_w)/2;
+    sdim.offset_y = (sdim.scr_h - sdim.cvs_h)/2;
+}
+
 // Fill Canvas and Offset parameters
 void Screen_ScaleGetCanvasDims(void) // only supports up-scaling, not down-scaling
 {
-    switch (scale_mode)
+    switch (sdim.scale_mode)
     {
         default:
         case SSM_CENTER:

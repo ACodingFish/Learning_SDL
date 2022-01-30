@@ -3,9 +3,6 @@
 #include <stdint.h>
 #include <stdbool.h>
 #include "SDL_Manager.h"
-#include "Screen.h"
-#include "Screen_Draw.h"
-#include "GFX_Manager.h"
 
 #include "global_def_macros.h"
 //#include <stdio.h> // for printf

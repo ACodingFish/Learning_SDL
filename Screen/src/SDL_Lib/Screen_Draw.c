@@ -2,6 +2,7 @@
 #include <stdbool.h>
 #include <SDL.h>
 
+#include "Screen_Scale.h"
 #include "Screen.h"
 #include "Screen_Draw.h"
 
@@ -93,3 +94,4 @@ void Screen_DrawRect(Screen_t * screen, ScreenPixelColor_t color, SDL_Rect* rect
         }
     }
 }
+

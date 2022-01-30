@@ -2,9 +2,9 @@
 #include <stdbool.h>
 #include "SDL_Manager.h"
 #include "GFX_Manager.h"
+#include "Screen_Scale.h"
 #include "Screen.h"
 #include "Screen_Draw.h"
-#include "Screen_Scale.h"
 
 #include "global_def_macros.h"
 
@@ -13,8 +13,8 @@
 #define SCREEN_HEIGHT 576u
 #define CANVAS_WIDTH 640u
 #define CANVAS_HEIGHT 480u
-#define ORIG_WIDTH 640u
-#define ORIG_HEIGHT 480u
+#define ORIG_WIDTH 150u
+#define ORIG_HEIGHT 100u
 #define WINDOW_TITLE "HELLO NURSE\0"
 
 /* TEMP  - Graphics procesing Ops */
@@ -51,7 +51,7 @@ void CreateGraphic(void)
 
 
 
-    int pixel_sz = 40;
+    int pixel_sz = 1;
     int horiz_pixels = ORIG_WIDTH/2/pixel_sz;
     int vert_pixels = ORIG_HEIGHT/2/pixel_sz;
     int num_rects = horiz_pixels*vert_pixels;
@@ -116,7 +116,7 @@ static int gfx_mgr_thread(void * ptr)
 bool GFX_Mgr_Init(void)
 {
     bool ret = false;
-    if (Screen_InitWindow(&screen, SCREEN_WIDTH, SCREEN_HEIGHT, WINDOW_TITLE))
+    if (Screen_InitWindow(&screen, SCREEN_WIDTH, SCREEN_HEIGHT, WINDOW_TITLE) != false)
     {
         gfx_thread = SDL_CreateThread(gfx_mgr_thread, "gfx_mgr_thread", (void *)NULL);
         if (gfx_thread != NULL)

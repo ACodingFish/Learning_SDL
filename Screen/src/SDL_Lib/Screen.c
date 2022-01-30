@@ -3,6 +3,7 @@
 #include <SDL.h>
 
 #include "SDL_Manager.h"
+#include "Screen_Scale.h"
 #include "Screen.h"
 
 bool Screen_CreateWindow(Screen_t * screen);
