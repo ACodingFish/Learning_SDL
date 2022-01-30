@@ -10,6 +10,11 @@ typedef struct Q_Node_t_def
     struct Q_Node_t_def * next;
 } Q_Node_t;
 
+void QueueLock(Queue_t *q);
+void QueueUnlock(Queue_t *q);
+bool QueueTryLock(Queue_t *q);
+
+
 Queue_t * QueueCreate(size_t data_sz, int max_sz)
 {
     Queue_t * q = malloc(sizeof(Queue_t));
@@ -34,9 +39,6 @@ Queue_t * QueueCreate(size_t data_sz, int max_sz)
     }
     return q;
 }
-
-void QueueLock(Queue_t *q);
-void QueueUnlock(Queue_t *q);
 
 bool QueueEnqueue(Queue_t * q, void * val)
 {
@@ -92,33 +94,35 @@ bool QueueEnqueue(Queue_t * q, void * val)
 
 void * QueueDequeue(Queue_t * q) // Make sure to free after dequeueing
 {
-    QueueLock(q);
     void * val = NULL;
-    if (q != NULL)
+    if (QueueTryLock(q) != false)
     {
-        Q_Node_t * q_node = ((Q_Node_t*)q->head);
-        if((q_node != NULL)&&(q->head != NULL) && (q->tail != NULL))
+        if (q != NULL)
         {
-            q->head = ((void*)((Q_Node_t*)q->head)->next);
-
-            val = q_node->value;
-            free(q_node);
-            q_node = NULL;
-            q->len--;
-            if (q->len == 0)
+            Q_Node_t * q_node = ((Q_Node_t*)q->head);
+            if((q_node != NULL)&&(q->head != NULL) && (q->tail != NULL))
             {
-                q->tail = NULL;
+                q->head = ((void*)((Q_Node_t*)q->head)->next);
+
+                val = q_node->value;
+                free(q_node);
+                q_node = NULL;
+                q->len--;
+                if (q->len == 0)
+                {
+                    q->tail = NULL;
+                }
+                //DBG_LOG("Dequeue: %d\n",q->len);
+            } else
+            {
+                DBG_WARN("Nothing Dequeued - Empty\n");
             }
-            //DBG_LOG("Dequeue: %d\n",q->len);
         } else
         {
-            DBG_WARN("Nothing Dequeued - Empty\n");
+            DBG_WARN("Nothing Dequeued - Null Queue\n");
         }
-    } else
-    {
-        DBG_WARN("Nothing Dequeued - Null Queue\n");
+        QueueUnlock(q);
     }
-    QueueUnlock(q);
     return val;
 }
 
@@ -128,10 +132,14 @@ void QueueDestroy(Queue_t * q)
     {
         DBG_LOG("Start Destroy Queue: %d\n", q->len);
         int total_queue_sz = q->len;
-        for (int i = 0; i <= total_queue_sz; i++)
+        
+        void * q_item = NULL;
+        do
         {
-            free(QueueDequeue(q));
-        }
+            q_item = QueueDequeue(q);
+            free(q_item);
+        } while (q_item != NULL);
+
         total_queue_sz = q->len;
 
         if (q->mutex != NULL)
@@ -147,22 +155,26 @@ void QueueDestroy(Queue_t * q)
 
 void QueueLock(Queue_t *q)
 {
-    if (q != NULL)
+    if ((q != NULL) && (q->mutex != NULL))
     {
-        if (q->mutex != NULL)
-        {
-            SDL_LockMutex((SDL_mutex*)q->mutex);
-        }
+        SDL_LockMutex((SDL_mutex*)q->mutex);
     }
+}
+
+bool QueueTryLock(Queue_t *q)
+{
+    bool ret = false;
+    if ((q != NULL) && (q->mutex != NULL))
+    {
+       ret = (SDL_TryLockMutex((SDL_mutex*)q->mutex) == 0);
+    }
+    return ret;
 }
 
 void QueueUnlock(Queue_t *q)
 {
-    if (q != NULL)
+    if ((q != NULL) && (q->mutex != NULL))
     {
-        if (q->mutex != NULL)
-        {
-            SDL_UnlockMutex((SDL_mutex*)q->mutex);
-        }
+        SDL_UnlockMutex((SDL_mutex*)q->mutex);
     }
 }
