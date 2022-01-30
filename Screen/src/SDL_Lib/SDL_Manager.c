@@ -15,6 +15,7 @@ void SDLMgr_CloseComponent(SDL_Component_t sdl_component);
 
 static uint32_t sdl_init_mask = 0x0; // Component Mask
 
+
 // Initialize All Components
 bool SDLMgr_InitAll(void)
 {

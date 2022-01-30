@@ -14,16 +14,17 @@ typedef struct ScreenPixelColor_t_def // RGB
 typedef struct Screen_t_def
 {
     SDL_Window* window;
-    SDL_Renderer* renderer;   //The window's surface (canvas?)
+    SDL_Renderer* renderer;
     uint16_t width;
     uint16_t height;
     char * title;
     uint32_t flags;
+    uint32_t render_flags;
     ScreenPixelColor_t rendererColor;
+    void * cmd_queue;
 } Screen_t;
 
-
-bool Screen_InitWindow(Screen_t * screen, uint16_t width, uint16_t height, char* title);
+bool Screen_Init(Screen_t * screen, uint16_t width, uint16_t height, char* title);
 void Screen_DestroyWindow(Screen_t * screen);
 void Screen_SetRendererColor(Screen_t * screen, uint8_t red, uint8_t green, uint8_t blue, uint8_t alpha);
 bool Screen_PointIsOnScreen(Screen_t * screen, int x, int y);
