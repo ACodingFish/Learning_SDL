@@ -4,14 +4,17 @@
 #include "GFX_Manager.h"
 #include "Screen.h"
 #include "Screen_Draw.h"
+#include "Screen_Scale.h"
 
 #include "global_def_macros.h"
 
 //Screen dimension constants
-#define SCREEN_WIDTH 800u // need to make this default and read in from a conf file
-#define SCREEN_HEIGHT 600u
+#define SCREEN_WIDTH 1024u // need to make this default and read in from a conf file
+#define SCREEN_HEIGHT 576u
 #define CANVAS_WIDTH 640u
 #define CANVAS_HEIGHT 480u
+#define ORIG_WIDTH 640u
+#define ORIG_HEIGHT 480u
 #define WINDOW_TITLE "HELLO NURSE\0"
 
 /* TEMP  - Graphics procesing Ops */
@@ -49,15 +52,13 @@ void CreateGraphic(void)
 
 
     int pixel_sz = 40;
-    int offset_x = (SCREEN_WIDTH - CANVAS_WIDTH)/2;
-    int offset_y = (SCREEN_HEIGHT - CANVAS_HEIGHT)/2;
-    int horiz_pixels = CANVAS_WIDTH/2/pixel_sz;
-    int vert_pixels = CANVAS_HEIGHT/2/pixel_sz;
+    int horiz_pixels = ORIG_WIDTH/2/pixel_sz;
+    int vert_pixels = ORIG_HEIGHT/2/pixel_sz;
     int num_rects = horiz_pixels*vert_pixels;
 
     if (is_bg != false)
     {
-        SDL_Rect bg_rect = {offset_x,offset_y, CANVAS_WIDTH, CANVAS_HEIGHT};
+        SDL_Rect bg_rect = Screen_ScaleCreateSDLRectangle(0, 0, ORIG_WIDTH, ORIG_HEIGHT);
         Screen_DrawRect(&screen, bg_color, &bg_rect, 1, true);
     } else
     {
@@ -68,10 +69,12 @@ void CreateGraphic(void)
             for (int j = 0; j < vert_pixels; j++)
             {
                 int rect_index = i*vert_pixels + j;
-                rects[rect_index].x = (i*2*pixel_sz) + offset_x;
-                rects[rect_index].y = (j*2*pixel_sz) + offset_y;
+                rects[rect_index].x = (i*2*pixel_sz);
+                rects[rect_index].y = (j*2*pixel_sz);
                 rects[rect_index].w = pixel_sz;
                 rects[rect_index].h = pixel_sz;
+
+                rects[rect_index] = Screen_ScaleSDLRectangle(rects[rect_index]);
             }
         }
         Screen_DrawRect(&screen, pix_color, rects, num_rects, true);
@@ -87,10 +90,15 @@ static int gfx_mgr_thread(void * ptr)
 {
     int ret = 0;
 
+    // Change color to black and paint entire window
     Screen_SetRendererColor(&screen, 0, 0, 0, 255);
     SDL_RenderClear(screen.renderer);
-    
+
     gfx_initialized = true;
+    
+    // STARTUP
+    Screen_ScaleInit(SSM_STRETCH, SCREEN_WIDTH, SCREEN_HEIGHT, ORIG_WIDTH, ORIG_HEIGHT);
+    
     while (gfx_initialized != false)
     {
         DBG_LOG("Screen Update\n");
