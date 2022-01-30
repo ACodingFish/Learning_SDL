@@ -21,6 +21,12 @@
 void CreateGraphic(void);
 /* TEMP END */
 
+// typedef enum GFXMgrCmd_t_def
+// {
+//     GFX_CMD_CLEAR_CANVAS,
+//     GFX_CMD_DRAW_PIXEL_MAP,
+// }GFXMgrCmd_t;
+
 static int gfx_mgr_thread(void * ptr);
 static SDL_Thread * gfx_thread = NULL;
 static bool gfx_initialized = false;
@@ -32,26 +38,8 @@ void CreateGraphic(void)
     static bool is_bg = true;
     ScreenPixelColor_t pix_color = {10, 200, 255, 255};
     ScreenPixelColor_t bg_color = {200, 200, 200, 255};
-    //SDL_Point points[SCREEN_WIDTH];
-    //for (int i = 0; i < SCREEN_WIDTH; i++)
-    //{
-    //    points[i].x = i;
-    //    points[i].y = (SCREEN_HEIGHT/2);
-    //}
-    //Screen_DrawPixels(&screen, pix_color, points, SCREEN_WIDTH);
-    
-    // SDL_Point points[] = {
-    //     {SCREEN_WIDTH/4, SCREEN_HEIGHT/4},
-    //     {SCREEN_WIDTH*3/4, SCREEN_HEIGHT/4},
-    //     {SCREEN_WIDTH*3/4, SCREEN_HEIGHT*3/4},
-    //     {SCREEN_WIDTH/4, SCREEN_HEIGHT*3/4},
-    // };
-    // Screen_DrawLines(&screen, pix_color, points, 4);
 
-
-
-
-    int pixel_sz = 1;
+    int pixel_sz = 10;
     int horiz_pixels = ORIG_WIDTH/2/pixel_sz;
     int vert_pixels = ORIG_HEIGHT/2/pixel_sz;
     int num_rects = horiz_pixels*vert_pixels;
@@ -68,22 +56,16 @@ void CreateGraphic(void)
         {
             for (int j = 0; j < vert_pixels; j++)
             {
+                SDL_Rect px_rect = Screen_ScaleCreateSDLRectangle((i*2*pixel_sz), (j*2*pixel_sz), pixel_sz, pixel_sz);
                 int rect_index = i*vert_pixels + j;
-                rects[rect_index].x = (i*2*pixel_sz);
-                rects[rect_index].y = (j*2*pixel_sz);
-                rects[rect_index].w = pixel_sz;
-                rects[rect_index].h = pixel_sz;
-
-                rects[rect_index] = Screen_ScaleSDLRectangle(rects[rect_index]);
+                rects[rect_index] = px_rect;
             }
         }
         Screen_DrawRect(&screen, pix_color, rects, num_rects, true);
     }
 
-
-
     is_bg = !is_bg;    
-    SDL_RenderPresent(screen.renderer);
+    
 }
 
 static int gfx_mgr_thread(void * ptr)
@@ -103,6 +85,7 @@ static int gfx_mgr_thread(void * ptr)
     {
         DBG_LOG("Screen Update\n");
         CreateGraphic(); // Temp for testing
+        SDL_RenderPresent(screen.renderer);
         SDLMgr_WaitMS(2000);
     }
 
