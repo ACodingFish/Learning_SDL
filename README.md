@@ -11,14 +11,21 @@ A repo for learning SDL 2.0 in C
 
 ## Current Features
 * SDL Initialization
+* Individual SDL Component Initialization and Cleanup
 * Basic Drawing (Pixels, Rectangles, Lines)
-
-## Desired Features (Short Term)
 * Threading (SDL Library)
 * Graphics Update Thread (periodic refresh)
+
+## Desired Features (Short Term)
 * Event thread/event queue (SDL Library)
 * Graphics Loading from file/buffer (SDL Library)
-* Pixel mapping from one resolution/aspect ratio to another (ex. 640x480 to 1920x1080)
+* Pixel mapping from one resolution to another with same aspect ratio (ex. 640x480 to 800x600)
+  * Fixed size (Centered)
+  * Scaled size (Stretch)
+* Pixel mapping from one aspect ratio to (ex. 640x480 [4:3] to 1920x1080 [16:9])
+  * Fixed Size (Centered)
+  * Scaled Size (Stretched to smallest dimension to maintain Aspect Ratio)
+  * Stretched Size (Stretched and Skewed)
 * Audio (SDL Library)
 * Keyboard Input (SDL Library)
 * Controller/Joystick Input (SDL Library)
