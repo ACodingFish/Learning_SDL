@@ -20,6 +20,17 @@ Queue_t * QueueCreate(size_t data_sz, int max_sz)
         q->len = 0;
         q->max_len = max_sz;
         q->data_sz = data_sz;
+
+        q->mutex = (void*)SDL_CreateMutex();
+        if (q->mutex == NULL)
+        {
+            free(q);
+            q = NULL;
+            DBG_ERR("Queue not made - Mutex Fail\n");
+        }
+    } else
+    {
+        DBG_ERR("Queue not made - Malloc Fail\n");
     }
     return q;
 }
@@ -29,6 +40,7 @@ void QueueUnlock(Queue_t *q);
 
 bool QueueEnqueue(Queue_t * q, void * val)
 {
+    QueueLock(q);
     bool ret = true;
     if ((q!=NULL) && (val!=NULL))
     {  
@@ -54,6 +66,7 @@ bool QueueEnqueue(Queue_t * q, void * val)
             } else
             {
                 free(q_node);
+                q_node = NULL;
                 DBG_ERR("Failed to Create Node\n");
                 ret = false;
             }
@@ -67,6 +80,7 @@ bool QueueEnqueue(Queue_t * q, void * val)
         DBG_WARN("Null Queue or Value - Value not added\n");
         ret = false;
     }
+    QueueUnlock(q);
 
     if (q->len > q->max_len)
     {
@@ -78,6 +92,7 @@ bool QueueEnqueue(Queue_t * q, void * val)
 
 void * QueueDequeue(Queue_t * q) // Make sure to free after dequeueing
 {
+    QueueLock(q);
     void * val = NULL;
     if (q != NULL)
     {
@@ -88,6 +103,7 @@ void * QueueDequeue(Queue_t * q) // Make sure to free after dequeueing
 
             val = q_node->value;
             free(q_node);
+            q_node = NULL;
             q->len--;
             if (q->len == 0)
             {
@@ -102,6 +118,7 @@ void * QueueDequeue(Queue_t * q) // Make sure to free after dequeueing
     {
         DBG_WARN("Nothing Dequeued - Null Queue\n");
     }
+    QueueUnlock(q);
     return val;
 }
 
@@ -115,18 +132,37 @@ void QueueDestroy(Queue_t * q)
         {
             free(QueueDequeue(q));
         }
-        int len = q->len;
+        total_queue_sz = q->len;
+
+        if (q->mutex != NULL)
+        {
+            SDL_DestroyMutex(q->mutex);
+            q->mutex = NULL;
+        }
         free(q);
-        DBG_LOG("Queue Destroyed: %d\n",len);
+        q = NULL; // this does nothing really -> Won't affect original pointer
+        DBG_LOG("Queue Destroyed: %d\n",total_queue_sz);
     }
 }
 
 void QueueLock(Queue_t *q)
 {
-
+    if (q != NULL)
+    {
+        if (q->mutex != NULL)
+        {
+            SDL_LockMutex((SDL_mutex*)q->mutex);
+        }
+    }
 }
 
 void QueueUnlock(Queue_t *q)
 {
-
+    if (q != NULL)
+    {
+        if (q->mutex != NULL)
+        {
+            SDL_UnlockMutex((SDL_mutex*)q->mutex);
+        }
+    }
 }

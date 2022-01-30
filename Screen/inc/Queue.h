@@ -3,7 +3,7 @@
 
 //https://codereview.stackexchange.com/questions/141238/implementing-a-generic-queue-in-c
 
-// Attempt at a generic (and eventually thread-safe) queue
+// Attempt at a generic (and hopefully thread-safe) queue
 
 typedef struct Queue_t_def
 {

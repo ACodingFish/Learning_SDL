@@ -12,6 +12,7 @@
 int main(int argc, char* args[])
 {
     Queue_t * q = QueueCreate(sizeof(int), 3);
+    if (!q) return -1; // temporary for testing. Remove.
     if (SDLMgr_InitAll() != false)
     {
         
