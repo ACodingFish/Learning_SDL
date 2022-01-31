@@ -27,6 +27,8 @@ bool Screen_Init(Screen_t * screen, uint16_t width, uint16_t height, char* title
         screen->flags = (SDL_WINDOW_SHOWN); // Or flags together
         screen->render_flags = (SDL_RENDERER_ACCELERATED); // SDL_RENDERER_PRESENTVSYNC
         screen->cmd_queue = NULL;
+        screen->scale = NULL;
+
         
 
         // Init SDL Screen
@@ -51,10 +53,11 @@ bool Screen_CreateWindow(Screen_t * screen)
     {
         screen->cmd_queue = (void*)QueueCreate(sizeof(GFXCmd_t),100);
         if (screen->cmd_queue != NULL)
-        {
+        {   
+            screen->scale = Screen_ScaleCreate(SSM_CENTER, screen->width, screen->height, screen->width, screen->height); // Init to defaults
             // SDL_CreateWindowAndRenderer(screen->width, screen->height, screen->flags, &(screen->window), &(screen->renderer));
             screen->window = SDL_CreateWindow(screen->title, SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, screen->width, screen->height, screen->flags);
-            if (screen->window != NULL)
+            if ((screen->window != NULL) && (screen->scale != NULL))
             {
                 screen->renderer = SDL_CreateRenderer(screen->window, -1, screen->render_flags);
                 if (screen->renderer != NULL)
@@ -97,6 +100,11 @@ void Screen_DestroyWindow(Screen_t * screen)
         {
             QueueDestroy(screen->cmd_queue);
             screen->cmd_queue = NULL;
+        }
+        if (screen->scale != NULL)
+        {
+            Screen_ScaleDestroy(screen->scale);
+            screen->scale = NULL;
         }
         if (screen->renderer != NULL)
         {

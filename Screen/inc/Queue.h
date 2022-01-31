@@ -21,5 +21,7 @@ bool QueueEnqueue(Queue_t * q, void * val);
 void * QueueDequeue(Queue_t * q);
 void QueueDestroy(Queue_t * q);
 
+void PrintQueue(Queue_t *q); // Casts queue to int and prints
+
 
 #endif //_QUEUE_H_

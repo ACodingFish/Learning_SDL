@@ -115,7 +115,7 @@ void * QueueDequeue(Queue_t * q) // Make sure to free after dequeueing
                 //DBG_LOG("Dequeue: %d\n",q->len);
             } else
             {
-                DBG_WARN("Nothing Dequeued - Empty\n");
+                //DBG_WARN("Nothing Dequeued - Empty\n");
             }
         } else
         {
@@ -176,5 +176,29 @@ void QueueUnlock(Queue_t *q)
     if ((q != NULL) && (q->mutex != NULL))
     {
         SDL_UnlockMutex((SDL_mutex*)q->mutex);
+    }
+}
+
+void PrintQueue(Queue_t *q)
+{
+    if (q != NULL)
+    {
+        QueueLock(q);
+        Q_Node_t * current_node = q->head;
+        DBG_LOG("Q: Print\n");
+        while (current_node != NULL)
+        {
+            if (current_node->value != NULL)
+            {
+                DBG_LOG("Q: %d\n", *((int*)current_node->value));
+                
+            } else
+            {
+                DBG_LOG("Q: (NULL)\n");
+            }
+            current_node = current_node->next;
+        }
+        QueueUnlock(q);
+
     }
 }

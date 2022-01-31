@@ -11,12 +11,11 @@
 #include "global_def_macros.h"
 
 //Screen dimension constants
-#define SCREEN_WIDTH 1024u // need to make this default and read in from a conf file
-#define SCREEN_HEIGHT 576u
-#define CANVAS_WIDTH 640u
-#define CANVAS_HEIGHT 480u
-#define ORIG_WIDTH 150u
-#define ORIG_HEIGHT 100u
+#define DEFAULT_SCREEN_WIDTH                1024u // need to make this default and read in from a conf file
+#define DEFAULT_SCREEN_HEIGHT               576u
+#define DEFAULT_ORIG_WIDTH                  150u
+#define DEFAULT_ORIG_HEIGHT                 100u
+#define DEFAULT_SCREEN_SCALE_MODE           SSM_CENTER
 #define WINDOW_TITLE "HELLO NURSE\0"
 
 /* TEMP  - Graphics procesing Ops */
@@ -25,6 +24,8 @@ static SDL_Thread * anim_thread = NULL;
 /* TEMP END */
 
 void GFX_Mgr_ProcessCmd(void);
+void GFX_Mgr_Clear_Canvas(void);
+void GFX_Mgr_Clear_Screen(void);
 static int gfx_mgr_thread(void * ptr);
 
 static SDL_Thread * gfx_thread = NULL;
@@ -38,19 +39,30 @@ static int AnimationThread(void * ptr)
     while (gfx_initialized == false) {}; // wait until launch
     
     GFX_Mgr_SendCmd(GFX_CMD_CLEAR_SCREEN);
+    SDLMgr_WaitMS(100);
+    static int gfx_cmd = 0;
     while(gfx_initialized == true)
     {
-        static bool is_bg = true;
-
-        if (is_bg != false)
+        switch(gfx_cmd)
         {
-            GFX_Mgr_SendCmd(GFX_CMD_CLEAR_CANVAS);
-        } else
-        {
-            GFX_Mgr_SendCmd(GFX_CMD_DRAW_PIXEL_MAP);
+            case 0:
+                GFX_Mgr_SendCmd(GFX_CMD_SWITCH_SCALE_MODE_CENTERED);
+                break;
+            case 1:
+            case 3:
+            case 5:
+                GFX_Mgr_SendCmd(GFX_CMD_DRAW_PIXEL_MAP);
+                break;
+            case 2:
+                GFX_Mgr_SendCmd(GFX_CMD_SWITCH_SCALE_MODE_SCALED);
+                break;
+            case 4:
+                GFX_Mgr_SendCmd(GFX_CMD_SWITCH_SCALE_MODE_STRETCHED);
+                break;
+            default:
+                break;
         }
-
-        is_bg = !is_bg;
+        gfx_cmd= (gfx_cmd+1)%6;
         SDLMgr_WaitMS(2000); 
     }
     return 0;
@@ -71,50 +83,58 @@ void GFX_Mgr_ProcessCmd(void)
     if ((screen.renderer != NULL) && (screen.cmd_queue != NULL))// might need check for screen null when multiple screens are implemented
     {
         GFXCmd_t * cmd = (GFXCmd_t*)QueueDequeue(screen.cmd_queue);
+        
         int pixel_sz = 10;
-        int horiz_pixels = ORIG_WIDTH/2/pixel_sz;
-        int vert_pixels = ORIG_HEIGHT/2/pixel_sz;
+        int horiz_pixels = DEFAULT_ORIG_WIDTH/2/pixel_sz;
+        int vert_pixels = DEFAULT_ORIG_HEIGHT/2/pixel_sz;
         int num_rects = horiz_pixels*vert_pixels;
         SDL_Rect rects[num_rects];
         
-        while (cmd != NULL) // process all commands
+        if (cmd != NULL)
         {
             render_needed = true; // at leeast one valid command
 
-            switch ((*cmd))
+            switch (*cmd)
             {
                 case GFX_CMD_CLEAR_SCREEN:
-                    // Change color to black and paint entire window
-                    Screen_SetRendererColor(&screen, 0, 0, 0, 255);
-                    SDL_RenderClear(screen.renderer);
+                    GFX_Mgr_Clear_Screen();
                     break;
                 case GFX_CMD_CLEAR_CANVAS:
-                    Screen_SetRendererColor(&screen, 200, 200, 200, 255);
-                    SDL_Rect bg_rect = Screen_ScaleCreateSDLRectangle(0, 0, ORIG_WIDTH, ORIG_HEIGHT); // need to make screen dimensions a part of the screen struct
-                    Screen_DrawRect(&screen, screen.rendererColor, &bg_rect, 1, true);
+                    GFX_Mgr_Clear_Canvas();
                     break;
                 case GFX_CMD_DRAW_PIXEL_MAP: // change to reading from file
                     Screen_SetRendererColor(&screen, 10, 200, 255, 255);
-
-
-
                     for (int i = 0; i < horiz_pixels; i++) // convert this to filling from a file/buffer
                     {
                         for (int j = 0; j < vert_pixels; j++)
                         {
-                            SDL_Rect px_rect = Screen_ScaleCreateSDLRectangle((i*2*pixel_sz), (j*2*pixel_sz), pixel_sz, pixel_sz);
+                            SDL_Rect px_rect = Screen_ScaleCreateSDLRectangle(screen.scale, (i*2*pixel_sz), (j*2*pixel_sz), pixel_sz, pixel_sz);
                             int rect_index = i*vert_pixels + j;
                             rects[rect_index] = px_rect;
                         }
                     }
                     Screen_DrawRect(&screen, screen.rendererColor, rects, num_rects, true);
                     break;
+                case GFX_CMD_SWITCH_SCALE_MODE_CENTERED:                // Redraw after mode changes (Implement drawing from file)
+                    Screen_ScaleSwitchMode(screen.scale, SSM_CENTER);
+                    GFX_Mgr_Clear_Screen();
+                    GFX_Mgr_Clear_Canvas();
+                    break;
+                case GFX_CMD_SWITCH_SCALE_MODE_SCALED:
+                    Screen_ScaleSwitchMode(screen.scale, SSM_SCALE);    // Redraw after mode changes (Implement drawing from file)
+                    GFX_Mgr_Clear_Screen();
+                    GFX_Mgr_Clear_Canvas();
+                    break;
+                case GFX_CMD_SWITCH_SCALE_MODE_STRETCHED:
+                    Screen_ScaleSwitchMode(screen.scale, SSM_STRETCH);  // Redraw after mode changes (Implement drawing from file)
+                    GFX_Mgr_Clear_Screen();
+                    GFX_Mgr_Clear_Canvas();
+                    break;
                 default:
                     break;
             }
             free(cmd);
             cmd = NULL;
-            QueueDequeue(screen.cmd_queue);
         }
 
         if (render_needed != false)
@@ -130,10 +150,11 @@ static int gfx_mgr_thread(void * ptr)
 {
     int ret = 0;
 
+    // Pre-Startup do from init.
+
     gfx_initialized = true;
     
-    // STARTUP
-    Screen_ScaleInit(SSM_STRETCH, SCREEN_WIDTH, SCREEN_HEIGHT, ORIG_WIDTH, ORIG_HEIGHT);
+    // STARTUP PRE-LOOP
     
     while (gfx_initialized != false)
     {
@@ -150,7 +171,7 @@ static int gfx_mgr_thread(void * ptr)
 bool GFX_Mgr_Init(void)
 {
     bool ret = false;
-    if (Screen_Init(&screen, SCREEN_WIDTH, SCREEN_HEIGHT, WINDOW_TITLE) != false)
+    if (Screen_Init(&screen, DEFAULT_SCREEN_WIDTH, DEFAULT_SCREEN_HEIGHT, WINDOW_TITLE) != false)
     {
         // test thread
         anim_thread = SDL_CreateThread(AnimationThread, "AnimationThread", (void*)NULL);
@@ -168,6 +189,14 @@ bool GFX_Mgr_Init(void)
         DBG_ERR("Failed to create screen/window\n");
     }
 
+    if (ret != false)
+    {
+        // Can make these read in from a file here else default to
+        Screen_ScaleSwitchScreenResolution(screen.scale, DEFAULT_SCREEN_WIDTH, DEFAULT_SCREEN_HEIGHT, false);
+        Screen_ScaleSwitchOrigResolution(screen.scale, DEFAULT_ORIG_WIDTH, DEFAULT_ORIG_HEIGHT, false);
+        Screen_ScaleSwitchMode(screen.scale, DEFAULT_SCREEN_SCALE_MODE);
+    }
+
     return ret;
 }
 
@@ -182,4 +211,18 @@ void GFX_Mgr_Shutdown(void)
     }
     DBG_LOG("GFX Down\n");
 
+}
+
+void GFX_Mgr_Clear_Canvas(void)
+{
+    Screen_SetRendererColor(&screen, 200, 200, 200, 255);
+    SDL_Rect bg_rect = Screen_ScaleGetCanvasSDLRectangle(screen.scale);
+    Screen_DrawRect(&screen, screen.rendererColor, &bg_rect, 1, true);
+}
+
+void GFX_Mgr_Clear_Screen(void)
+{
+    // Change color to black and paint entire window
+    Screen_SetRendererColor(&screen, 0, 0, 0, 255);
+    SDL_RenderClear(screen.renderer);
 }

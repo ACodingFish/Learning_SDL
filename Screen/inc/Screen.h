@@ -22,6 +22,7 @@ typedef struct Screen_t_def
     uint32_t render_flags;
     ScreenPixelColor_t rendererColor;
     void * cmd_queue;
+    void* scale; // ScreenScaleDimension_t
 } Screen_t;
 
 bool Screen_Init(Screen_t * screen, uint16_t width, uint16_t height, char* title);
