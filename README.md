@@ -23,11 +23,16 @@ A repo for learning SDL 2.0 in C
   * Scaled Size (Stretched to smallest dimension to maintain Aspect Ratio)
   * Stretched Size (Stretched and Skewed)
 * Generic, Thread Safe (probably) Queue Structure
+* Graphics command processing and queueing (thread-safe to allow commands from other threads) GFX_SendCommand/GFX_ProcessCommand
+  * Clear Screen to Black
+  * Clear Canavas (Drawable Area) to Grey
+  * Draw Pixels (Debug)
+  * Scale Mode Switching (Centered, Scaled, Skewed/Stretched)
 
 ## Desired Features (Short Term)
 * Event thread/event queue (SDL Library)
-* Graphics command processing and queueing (thread-safe to allow commands from other threads) GFX_SendCommand/GFX_ProcessCommand
 * Graphics Loading from file/buffer (SDL Library)
+* Graphics Config Loading from file/buffer (SDL Library)
 * Audio (SDL Library)
 * Keyboard Input (SDL Library)
 * Controller/Joystick Input (SDL Library)
