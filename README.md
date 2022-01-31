@@ -31,6 +31,7 @@ A repo for learning SDL 2.0 in C
 
 ## Desired Features (Short Term)
 * Event thread/event queue (SDL Library)
+* SDL_Manager command queue (to distribute to other modules, such as gfx)
 * Graphics Config Loading from file/buffer (SDL Library)
   * Display Detection - scr_w/scr_h (For first launch) - Possibly do this elsewhere (script, gui, etc)
 * Graphics Loading from file/buffer (SDL Library)
