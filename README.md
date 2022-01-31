@@ -23,7 +23,7 @@ A repo for learning SDL 2.0 in C
   * Scaled Size (Stretched to smallest dimension to maintain Aspect Ratio)
   * Stretched Size (Stretched and Skewed)
 * Generic, Thread Safe (probably) Queue Structure
-* Graphics command processing and queueing (thread-safe to allow commands from other threads) GFX_SendCommand/GFX_ProcessCommand
+* Graphics command processing and queueing (thread-safe to allow commands from other threads)
   * Clear Screen to Black
   * Clear Canavas (Drawable Area) to Grey
   * Draw Pixels (Debug)
